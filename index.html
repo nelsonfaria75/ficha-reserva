@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ficha de Reserva de Imóvel - Formulário e Impressão</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Montserrat (a alternativa geométrica direta e de máxima legibilidade à família Gotham) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              red: '#c8102e',
+              burgundy: '#8a1538',
+              navy: '#250e62',
+              black: '#000000',
+              dark: '#111827',
+              light: '#f9fafb'
+            }
+          },
+          fontFamily: {
+            sans: ['"Gotham"', '"Gotham Book"', '"Gotham Medium"', '"Montserrat"', 'system-ui', '-apple-system', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Deteção das variantes locais de Gotham padrão (não-condensada) instaladas no sistema */
+    @font-face {
+      font-family: 'Gotham';
+      src: local('Gotham-Book'), local('Gotham Book'), local('Gotham-Regular'), local('Gotham Regular'), local('Gotham');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Gotham';
+      src: local('Gotham-Medium'), local('Gotham Medium');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Gotham';
+      src: local('Gotham-Bold'), local('Gotham Bold');
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    body {
+      font-family: 'Gotham', 'Gotham Book', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    @media print {
+      body {
+        background: white !important;
+        color: #000000 !important;
+        font-size: 10pt;
+        font-family: 'Gotham', 'Gotham Book', 'Montserrat', sans-serif !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-page {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        color: #000000 !important;
+      }
+      @page {
+        size: A4;
+        margin: 10mm 14mm 10mm 14mm;
+      }
+      .page-break {
+        page-break-before: always;
+      }
+    }
+    
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background-color: #f1f5f9;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
+
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="h-9 w-9 bg-brand-red text-white flex items-center justify-center font-bold rounded-lg shadow-sm">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900 leading-tight">Ficha de Reserva Imobiliária</h1>
+          <p class="text-xs text-slate-500">Gerador e Editor de Acordo com Pré-Sinal</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button type="button" onclick="loadSampleData()" class="px-3 py-2 text-xs md:text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors flex items-center gap-1.5" title="Preencher com dados de exemplo">
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span class="hidden sm:inline">Exemplo</span>
+        </button>
+        <button type="button" onclick="clearForm()" class="px-3 py-2 text-xs md:text-sm font-medium text-brand-red bg-red-50 hover:bg-red-100 rounded-lg transition-colors" title="Limpar formulário">
+          Limpar
+        </button>
+        <button type="button" onclick="window.print()" class="px-4 py-2 text-xs md:text-sm font-semibold text-white bg-brand-red hover:bg-brand-burgundy rounded-lg shadow-sm transition-all flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          <span>Imprimir / PDF</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT COLUMN: Form input controls (No-Print) -->
+    <div class="lg:col-span-5 no-print">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden sticky top-20">
+        <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
+          <h2 class="font-semibold text-slate-800 text-sm tracking-wide uppercase flex items-center gap-2">
+            <svg class="w-4 h-4 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            Dados da Reserva
+          </h2>
+          <span class="text-xs text-slate-500 font-normal">Edição em tempo real</span>
+        </div>
+
+        <form id="reservationForm" class="p-5 max-h-[calc(100vh-140px)] overflow-y-auto custom-scroll space-y-6 text-sm" oninput="updateDocumentPreview()">
+          
+          <div>
+            <h3 class="text-xs font-bold text-brand-navy uppercase tracking-wider mb-3 pb-1 border-b border-slate-100 flex items-center justify-between">
+              <span>1. Mediadora Imobiliária (Fixa)</span>
+              <span class="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded">AMI 14229</span>
+            </h3>
+            <div class="space-y-3">
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 leading-relaxed">
+                <p class="font-bold text-brand-navy">Amarterra - Mediação Imobiliária, Lda.</p>
+                <p class="text-black font-normal">Praça do Comércio, n.º 108, 4720-337 Ferreiros AMR</p>
+                <p class="text-brand-burgundy font-semibold">Licença AMI: 14229</p>
+              </div>
+
+              <!-- Controlo do Logótipo Oficial -->
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                <div class="flex items-center justify-between">
+                  <label class="block text-xs font-semibold text-slate-700">Ficheiro do Logótipo</label>
+                  <span class="text-[10px] text-slate-500 font-mono">Oficial - 4 Cores.png</span>
+                </div>
+                <div>
+                  <input type="file" id="logoFileInput" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-[11px] file:font-semibold file:bg-brand-red file:text-white hover:file:bg-red-700 cursor-pointer" onchange="handleLogoUpload(event)">
+                  <p class="text-[10px] text-slate-500 mt-1.5 leading-normal">
+                    Selecione o ficheiro <strong class="text-slate-700 font-mono">Oficial - 4 Cores.png</strong> para o ativar na pré-visualização. Ficará guardado automaticamente na memória do seu navegador.
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Data de Celebração do CMI (Contrato Mediação)</label>
+                <input type="date" id="cmiDate" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red">
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-xs font-bold text-brand-navy uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">2. Identificação do Imóvel</h3>
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-600 mb-1">Fração / Artigo</label>
+                  <input type="text" id="propFraction" placeholder="Ex: B (2º Esq) / U-1234" value="A" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red">
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-600 mb-1">Prédio / Descrição</label>
+                  <input type="text" id="propBuilding" placeholder="Ex: Urbano nº 450" value="Urbano n.º 124" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red">
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Localização (Rua / Morada)</label>
+                <input type="text" id="propAddress" placeholder="Rua / Avenida..." value="Rua das Flores, Lote 12" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red">
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-600 mb-1">Freguesia</label>
+                  <input type="text" id="propParish" value="Parque das Nações" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red">
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-600 mb-1">Concelho</label>
+                  <input type="text" id="propCouncil" value="Amares" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-xs font-bold text-brand-navy uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">3. Intervenientes</h3>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Promitente(s) Comprador(es)</label>
+                <input type="text" id="buyerNames" placeholder="Nome completo, NIF..." value="João Pedro Santos da Silva (NIF: 234567890)" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Proprietário(s) / Vendedor(es)</label>
+                <input type="text" id="sellerNames" placeholder="Nome completo, NIF..." value="Maria Helena Ferreira Ramos e António Manuel Ramos" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red">
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-xs font-bold text-brand-navy uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">4. Valores e Pagamentos</h3>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Valor Total da Compra (€)</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input type="number" id="purchaseValueNum" step="500" value="235000" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red" onchange="syncPurchaseText()">
+                  <input type="text" id="purchaseValueText" placeholder="Por extenso..." value="235.000,00 € (Duzentos e trinta e cinco mil euros)" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red">
+                </div>
+              </div>
+
+              <div class="p-3 bg-red-50/50 rounded-xl border border-red-100 space-y-2">
+                <span class="text-xs font-semibold text-brand-red block">Pré-Sinal / Depósito de Reserva</span>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[11px] text-slate-600 mb-1">Valor Numérico (€)</label>
+                    <input type="number" id="reserveValueNum" value="2500" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red" onchange="syncReserveText()">
+                  </div>
+                  <div>
+                    <label class="block text-[11px] text-slate-600 mb-1">Valor por Extenso</label>
+                    <input type="text" id="reserveValueExtenso" value="2.500,00€ (Dois mil e quinhentos euros)" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red">
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                  <div>
+                    <label class="block text-[11px] text-slate-600 mb-1">Meio de Pagamento</label>
+                    <select id="paymentMethod" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red bg-white" onchange="togglePaymentInputs()">
+                      <option value="cheque" selected>Cheque Bancário</option>
+                      <option value="transfer">Transferência Bancária</option>
+                      <option value="other">Outro Meio</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-[11px] text-slate-600 mb-1" id="paymentRefLabel">N.º do Cheque / Ref.</label>
+                    <input type="text" id="chequeNumber" value="CHQ-98124501" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red">
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-[11px] text-slate-600 mb-1">Banco / Entidade Sacada</label>
+                  <input type="text" id="chequeBank" value="Banco Santander Totta" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red">
+                </div>
+              </div>
+
+              <!-- CPCV and Deed details -->
+              <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Data Limite CPCV</label>
+                    <input type="date" id="cpcvDateLimit" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Sinal no CPCV (€)</label>
+                    <input type="text" id="cpcvSignal" value="23.500,00€ (Vinte e três mil e quinhentos euros)" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red">
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-600 mb-1">Prazo para Escritura (se não houver CPCV)</label>
+                  <div class="flex items-center gap-2">
+                    <input type="number" id="deedDaysLimit" value="90" class="w-24 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red">
+                    <span class="text-xs text-slate-600">dias a contar da data de reserva</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-xs font-bold text-brand-navy uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">5. Condições e Financiamento</h3>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <div>
+                  <p class="font-medium text-slate-800 text-xs">Condicionado a Financiamento Bancário?</p>
+                  <p class="text-[11px] text-slate-500">Ativa/desativa as cláusulas de devolução por recusa bancária</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="hasFinancing" checked class="sr-only peer" onchange="updateDocumentPreview()">
+                  <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-red"></div>
+                </label>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-600 mb-1">Data da Reserva</label>
+                  <input type="date" id="reservationDate" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red">
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-600 mb-1">Imagem do Cheque / Comprovativo</label>
+                  <input type="file" id="chequeImageInput" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200" onchange="handleChequeUpload(event)">
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <div class="lg:col-span-7 flex flex-col items-center">
+      
+      <!-- Visual notice / print hint -->
+      <div class="w-full max-w-[210mm] mb-3 flex items-center justify-between text-xs text-slate-500 px-1 no-print">
+        <span class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+          Folha A4 Pronta a Imprimir
+        </span>
+        <span class="text-slate-400">Ctrl + P para gerar PDF oficial</span>
+      </div>
+
+      <!-- A4 Sheet Container -->
+      <div id="printSheet" class="print-page bg-white shadow-xl rounded-xl border border-slate-200 w-full max-w-[210mm] min-h-[297mm] p-8 sm:p-10 text-black flex flex-col justify-between transition-all font-sans text-[11px] leading-relaxed relative">
+        
+        <div>
+          <!-- Header: Logo ERA Amares + Faixa Vermelha Original + Data da Reserva -->
+          <div class="relative mb-4">
+            <!-- Linha superior: Logo PNG + Faixa Vermelha rigorosamente alinhados em altura -->
+            <div class="flex items-stretch justify-between h-[96px] overflow-hidden">
+              
+              <!-- Contentor da Imagem Original do Logo (mantém proporção sem qualquer distorção) -->
+              <div 
+                id="logoDropZone"
+                class="flex items-center justify-center pr-3 pl-1 bg-white flex-shrink-0 h-full relative cursor-pointer group" 
+                onclick="triggerLogoSelect()" 
+                title="Clique para selecionar ou atualizar Oficial - 4 Cores.png"
+              >
+                <img 
+                  id="docLogoImg" 
+                  src="Oficial - 4 Cores.png" 
+                  alt="ERA Imobiliária" 
+                  class="h-full w-auto max-h-full object-contain select-none"
+                  onload="onLogoLoaded()"
+                  onerror="onLogoError()"
+                >
+
+                <!-- Fallback Elegante exibido enquanto o ficheiro não estiver carregado na sandbox -->
+                <div id="logoFallbackPlaceholder" class="hidden flex flex-col items-center justify-center p-2 border-2 border-dashed border-[#c8102e]/40 bg-red-50/70 rounded-lg text-center h-full w-[130px] transition-all group-hover:bg-red-100 group-hover:border-[#c8102e]">
+                  <svg class="w-5 h-5 text-brand-red mb-1 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                  </svg>
+                  <span class="text-[9px] font-bold text-brand-navy leading-tight uppercase">Carregar Logo</span>
+                  <span class="text-[7.5px] text-slate-500 mt-0.5 font-mono">Oficial - 4 Cores</span>
+                </div>
+              </div>
+
+              <!-- Faixa Vermelha Oficial ERA (#c8102e) com corte diagonal -->
+              <div 
+                class="flex-1 bg-[#c8102e] flex flex-col justify-center items-end px-5 py-2 text-white shadow-sm h-full"
+                style="clip-path: polygon(36px 0%, 100% 0%, 100% 100%, 0% 100%); margin-left: -8px;"
+              >
+                <h1 class="text-xl sm:text-[24px] font-normal tracking-wide uppercase text-white font-sans leading-tight text-right">
+                  FICHA DE RESERVA
+                </h1>
+                <p class="text-[8.5px] sm:text-[9.5px] font-normal tracking-wide text-white uppercase text-right mt-1">
+                  ACORDO DE RESERVA DE IMÓVEL E ENTREGA DE PRÉ-SINAL
+                </p>
+              </div>
+            </div>
+
+            <!-- Caixa da Data da Reserva logo abaixo da faixa à direita -->
+            <div class="flex justify-end mt-2">
+              <div class="border border-[#c8102e] rounded px-3.5 py-1 text-right bg-white min-w-[130px] shadow-xs">
+                <span class="block text-[8px] font-bold text-[#c8102e] uppercase tracking-wider">DATA DA RESERVA</span>
+                <span id="docHeaderDate" class="font-bold text-black text-xs tracking-normal">--/--/----</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-4 border-2 border-dashed border-slate-300 rounded-lg p-2 bg-slate-50/50 flex flex-col items-center justify-center relative min-h-[130px] overflow-hidden text-center" id="chequeContainer">
+            <div id="chequePlaceholder" class="p-3 flex flex-col items-center justify-center text-slate-500">
+              <svg class="w-7 h-7 mb-1 stroke-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+              <span class="font-bold text-[10.5px] text-black uppercase tracking-wide">CÓPIA DO CHEQUE / COMPROVATIVO DE PAGAMENTO</span>
+              <span class="text-[9px] text-black/80 italic">Este cheque é traçado e passado em nome do proprietário do imóvel</span>
+              <span class="text-[8px] text-slate-400 mt-1 no-print">(Pode carregar o ficheiro no formulário à esquerda)</span>
+            </div>
+            <img id="chequeImagePreview" src="" alt="Cópia do Cheque" class="hidden max-h-[145px] object-contain rounded shadow-sm">
+          </div>
+
+          <div class="text-justify leading-relaxed mb-3 text-[10.5px] text-black border-b border-black/20 pb-2.5">
+            <span class="font-bold text-black">Amarterra - Mediação Imobiliária, Lda.</span>, com sede na <span class="font-medium text-black">Praça do Comércio, n.º 108, 4720-337 Ferreiros AMR</span>, titular da licença <span class="font-bold text-black">AMI 14229</span>, vem, para os devidos efeitos declarar que, como fiel depositário, recebeu de <strong id="docBuyerNames" class="text-black font-semibold underline decoration-black/40">__________________________________________</strong>, o valor de <strong id="docReserveValue" class="text-black font-semibold">2.500,00€ (Dois mil e quinhentos euros)</strong> mediante a entrega de <span id="docPaymentMethod">um cheque com o N.º</span> <strong id="docChequeNumber" class="text-black font-semibold">________________</strong>, sacado sobre o <strong id="docChequeBank" class="text-black font-semibold">____________________________</strong> como reserva da fração <strong id="docPropFraction" class="text-black font-semibold">___</strong> do prédio <strong id="docPropBuilding" class="text-black font-semibold">___</strong>, sito na <strong id="docPropAddress" class="text-black font-semibold">_________________________________</strong>, freguesia de <strong id="docPropParish" class="text-black font-semibold">_____________________</strong>, concelho de <strong id="docPropCouncil" class="text-black font-semibold">__________________</strong> de que é/são proprietário(s) <strong id="docSellerNames" class="text-black font-semibold underline decoration-black/40">____________________________________________________________________________</strong>.
+            <div class="mt-2 p-2 bg-slate-50 rounded border border-black/20 text-[10.5px]">
+              O valor acordado para a compra e venda é de: <strong id="docPurchaseValue" class="text-black font-bold text-[11px]">EUR _________________________________________________________________________</strong>.
+            </div>
+          </div>
+
+          <div class="space-y-1.5 text-justify text-[9.8px] text-black leading-normal">
+            
+            <!-- Cláusula 1ª -->
+            <p id="clausula1">
+              <strong>1.ª</strong> Este cheque serve de pré-sinal do preço da compra do imóvel acima identificado, só sendo descontado após a assinatura do Contrato Promessa de Compra e Venda (CPCV) ou da escritura, caso não haja lugar a CPCV, e a sua entrega justifica-se pelo facto de o comprador pretender recorrer a financiamento bancário para a aquisição, não tendo, nesta data, garantida a obtenção desse financiamento.
+            </p>
+
+            <!-- Cláusula 2ª -->
+            <p>
+              <strong>2.ª</strong> O CPCV, de acordo com ambas as partes, será celebrado até ao dia <strong id="docCpcvDate">___/___/________</strong>, com entrega de um sinal no valor de <strong id="docCpcvSignal">___________________________</strong>, mediante a emissão de um cheque traçado, em nome do proprietário do imóvel suprarreferido.
+            </p>
+
+            <!-- Cláusula 3ª -->
+            <p>
+              <strong>3.ª</strong> Caso não haja lugar a CPCV, a Escritura de compra e venda será celebrada no prazo máximo de <strong id="docDeedDays">____</strong> dias a contar da presente data.
+            </p>
+
+            <!-- Cláusula 4ª -->
+            <p id="clausula4">
+              <strong>4.ª</strong> Se a entidade bancária fizer empréstimo insuficiente para a efetivação desta compra ou o potencial Promitente Comprador não conseguir o financiamento, este cheque é devolvido e anulado este processo, salvo se as partes estiverem de acordo em prosseguir de igual modo com o processo de compra e venda.
+            </p>
+
+            <!-- Cláusula 5ª -->
+            <p>
+              <strong>5.ª</strong> A presente reserva fica dependente da aceitação por parte do proprietário na venda pelo valor supramencionado.
+            </p>
+
+            <!-- Cláusula 6ª -->
+            <p>
+              <strong>6.ª</strong> O potencial Promitente Comprador, após a entrega do valor suprarreferido a título de reserva do imóvel, não poderá desistir da celebração do negócio sem motivo justificativo e válido à luz das regras da boa-fé, com exceção do previsto na cláusula 4.ª.
+            </p>
+
+            <!-- Cláusula 7ª -->
+            <p>
+              <strong>7.ª</strong> No caso de desistência injustificada por decisão do Promitente Comprador, fica este obrigado a pagar ao Promitente Vendedor, a título de indemnização, o valor correspondente àquele que se encontra titulado pelo cheque em apreço.
+            </p>
+
+            <!-- Cláusula 8ª -->
+            <p>
+              <strong>8.ª</strong> A desistência injustificada por decisão do Promitente Vendedor, implica o pagamento por este ao Promitente Comprador, a título de indemnização, de um valor correspondente àquele que se encontra titulado pelo cheque em apreço.
+            </p>
+
+            <!-- Cláusula 9ª -->
+            <p>
+              <strong>9.ª</strong> Sem prejuízo dos direitos e obrigações constituídos e a que as Partes se vinculam pelo presente documento, nomeadamente nos pontos 6.º e 7.º supra, a mediadora, na sua qualidade de fiel depositária, deverá, em obediência ao disposto na última parte do artigo 18.º da Lei 15/2013, restituir ao potencial Promitente Comprador o cheque em apreço no prazo que por este for determinado.
+            </p>
+
+            <!-- Cláusula 10ª -->
+            <p>
+              <strong>10.ª</strong> A assinatura do CPCV será efetuada nas instalações da empresa mediadora e os potenciais Promitentes Vendedor e Comprador mandatam, pelo presente, a empresa mediadora para proceder à marcação e notificação de ambos, com 3 dias úteis de antecedência, por escrito, do dia e hora da assinatura do CPCV.
+            </p>
+
+            <!-- Cláusula 11ª -->
+            <p>
+              <strong>11.ª</strong> O presente documento cessa os seus efeitos jurídicos a partir do momento em que é celebrado o Contrato Promessa de Compra e Venda ou escritura caso não haja lugar à assinatura do mesmo.
+            </p>
+
+            <!-- Cláusula 12ª -->
+            <p>
+              <strong>12.ª</strong> A mediadora supra identificada declara que o imóvel objeto da presente ficha de reserva, foi por si angariado através do Contrato de Mediação Imobiliária (CMI) celebrado em <strong id="docCmiDate">___/___/________</strong>.
+            </p>
+
+            <!-- Cláusula 13ª -->
+            <p class="text-[9.2px] text-black">
+              <strong>13.ª</strong> O Proprietário e o Potencial Comprador poderão autorizar no sítio privacidade.era.pt que os seus dados sejam recolhidos, transmitidos ou processados informaticamente pela mediadora. Estes dados destinam-se a processamento administrativo, estatístico e de apresentação / divulgação de produtos e serviços comercializados.
+            </p>
+
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-black/20">
+          <div class="grid grid-cols-3 gap-6 text-center text-[10px]">
+            <div>
+              <p class="font-bold text-black mb-8 uppercase tracking-wide">O(s) Promitente(s) Vendedor(es)</p>
+              <div class="border-b border-black w-4/5 mx-auto"></div>
+              <p class="text-[8.5px] text-black/80 mt-1">Assinatura</p>
+            </div>
+            <div>
+              <p class="font-bold text-black mb-8 uppercase tracking-wide">A Mediadora (Fiel Depositário)</p>
+              <div class="border-b border-black w-4/5 mx-auto"></div>
+              <p class="text-[8.5px] text-black/80 mt-1">Assinatura e Carimbo</p>
+            </div>
+            <div>
+              <p class="font-bold text-black mb-8 uppercase tracking-wide">O(s) Promitente(s) Comprador(es)</p>
+              <div class="border-b border-black w-4/5 mx-auto"></div>
+              <p class="text-[8.5px] text-black/80 mt-1">Assinatura</p>
+            </div>
+          </div>
+
+          <div class="mt-3 pt-1 flex items-center justify-between text-[8.5px] text-black/80 italic">
+            <span>Feito em triplicado com cópia do cheque e entregue uma via a cada um dos outorgantes.</span>
+            <span id="docFooterCityDate">Amares, 2026</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    // Format ISO date (YYYY-MM-DD) to Portuguese Date string (DD/MM/YYYY)
+    function formatDatePt(isoDateStr) {
+      if (!isoDateStr) return '___/___/________';
+      const parts = isoDateStr.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return isoDateStr;
+    }
+
+    // Gestão do Logótipo (Carregamento, LocalStorage e Prevenção de Imagem Quebrada)
+    function onLogoLoaded() {
+      const img = document.getElementById('docLogoImg');
+      const fallback = document.getElementById('logoFallbackPlaceholder');
+      if (img) img.classList.remove('hidden');
+      if (fallback) fallback.classList.add('hidden');
+    }
+
+    function onLogoError() {
+      const img = document.getElementById('docLogoImg');
+      const fallback = document.getElementById('logoFallbackPlaceholder');
+      // Oculta o ícone quebrado do browser e ativa o botão de carregamento
+      if (img) img.classList.add('hidden');
+      if (fallback) fallback.classList.remove('hidden');
+    }
+
+    function triggerLogoSelect() {
+      document.getElementById('logoFileInput').click();
+    }
+
+    // Carregamento direto de imagem para o logotipo com persistência no LocalStorage
+    function handleLogoUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const imgData = e.target.result;
+          const img = document.getElementById('docLogoImg');
+          const fallback = document.getElementById('logoFallbackPlaceholder');
+          
+          img.src = imgData;
+          img.classList.remove('hidden');
+          if (fallback) fallback.classList.add('hidden');
+
+          try {
+            localStorage.setItem('era_official_logo', imgData);
+          } catch (err) {
+            console.warn('Não foi possível guardar na cache local:', err);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Configuração de Drag & Drop para o logótipo
+    function initLogoDragAndDrop() {
+      const dropZone = document.getElementById('logoDropZone');
+      if (!dropZone) return;
+
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.add('ring-2', 'ring-brand-red');
+        }, false);
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove('ring-2', 'ring-brand-red');
+        }, false);
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files && files.length > 0) {
+          handleLogoUpload({ target: { files: files } });
+        }
+      }, false);
+    }
+
+    // Set today's date on relevant inputs on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      // Verificar se o utilizador já gravou previamente o ficheiro do logótipo
+      const savedLogo = localStorage.getItem('era_official_logo');
+      if (savedLogo) {
+        const img = document.getElementById('docLogoImg');
+        const fallback = document.getElementById('logoFallbackPlaceholder');
+        img.src = savedLogo;
+        img.classList.remove('hidden');
+        if (fallback) fallback.classList.add('hidden');
+      }
+
+      initLogoDragAndDrop();
+
+      const today = new Date().toISOString().split('T')[0];
+      
+      const resDateEl = document.getElementById('reservationDate');
+      if (resDateEl && !resDateEl.value) resDateEl.value = today;
+
+      const cmiDateEl = document.getElementById('cmiDate');
+      if (cmiDateEl && !cmiDateEl.value) cmiDateEl.value = today;
+
+      // Default CPCV in 30 days
+      const cpcvLimit = new Date();
+      cpcvLimit.setDate(cpcvLimit.getDate() + 30);
+      const cpcvDateEl = document.getElementById('cpcvDateLimit');
+      if (cpcvDateEl && !cpcvDateEl.value) cpcvDateEl.value = cpcvLimit.toISOString().split('T')[0];
+
+      updateDocumentPreview();
+    });
+
+    // Toggle Payment fields label & wording
+    function togglePaymentInputs() {
+      const method = document.getElementById('paymentMethod').value;
+      const refLabel = document.getElementById('paymentRefLabel');
+      
+      if (method === 'cheque') {
+        refLabel.textContent = 'N.º do Cheque';
+      } else if (method === 'transfer') {
+        refLabel.textContent = 'N.º Comprovativo / IBAN';
+      } else {
+        refLabel.textContent = 'Identificação / Referência';
+      }
+      updateDocumentPreview();
+    }
+
+    // Convert numbers to text sync helpers
+    function syncPurchaseText() {
+      const num = parseFloat(document.getElementById('purchaseValueNum').value);
+      if (!isNaN(num)) {
+        const formatted = new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(num);
+        document.getElementById('purchaseValueText').value = formatted;
+      }
+      updateDocumentPreview();
+    }
+
+    function syncReserveText() {
+      const num = parseFloat(document.getElementById('reserveValueNum').value);
+      if (!isNaN(num)) {
+        const formatted = new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(num);
+        document.getElementById('reserveValueExtenso').value = formatted;
+      }
+      updateDocumentPreview();
+    }
+
+    // Handle Image Upload for Cheque Copy
+    function handleChequeUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.getElementById('chequeImagePreview');
+          const placeholder = document.getElementById('chequePlaceholder');
+          img.src = e.target.result;
+          img.classList.remove('hidden');
+          placeholder.classList.add('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function updateDocumentPreview() {
+      // 1. Agency CMI Date (Agency info is now fixed)
+      const cmiDate = formatDatePt(document.getElementById('cmiDate').value);
+      document.getElementById('docCmiDate').textContent = cmiDate;
+
+      // 2. Reservation Date
+      const resDateRaw = document.getElementById('reservationDate').value;
+      const resDate = formatDatePt(resDateRaw);
+      document.getElementById('docHeaderDate').textContent = resDate;
+
+      // 3. Property
+      document.getElementById('docPropFraction').textContent = document.getElementById('propFraction').value || '___';
+      document.getElementById('docPropBuilding').textContent = document.getElementById('propBuilding').value || '___';
+      document.getElementById('docPropAddress').textContent = document.getElementById('propAddress').value || '_________________________________';
+      document.getElementById('docPropParish').textContent = document.getElementById('propParish').value || '_____________________';
+      document.getElementById('docPropCouncil').textContent = document.getElementById('propCouncil').value || '__________________';
+
+      // 4. Intervenientes
+      document.getElementById('docBuyerNames').textContent = document.getElementById('buyerNames').value || '__________________________________________________';
+      document.getElementById('docSellerNames').textContent = document.getElementById('sellerNames').value || '__________________________________________________';
+
+      // 5. Values & Method
+      const method = document.getElementById('paymentMethod').value;
+      if (method === 'cheque') {
+        document.getElementById('docPaymentMethod').textContent = 'um cheque com o N.º';
+      } else if (method === 'transfer') {
+        document.getElementById('docPaymentMethod').textContent = 'transferência bancária com a ref./IBAN';
+      } else {
+        document.getElementById('docPaymentMethod').textContent = 'documento/meio com o N.º';
+      }
+
+      document.getElementById('docReserveValue').textContent = document.getElementById('reserveValueExtenso').value || '0,00€';
+      document.getElementById('docChequeNumber').textContent = document.getElementById('chequeNumber').value || '________________';
+      document.getElementById('docChequeBank').textContent = document.getElementById('chequeBank').value || '____________________________';
+      document.getElementById('docPurchaseValue').textContent = document.getElementById('purchaseValueText').value || 'EUR _________________________';
+
+      // 6. Deadlines and Signals
+      document.getElementById('docCpcvDate').textContent = formatDatePt(document.getElementById('cpcvDateLimit').value);
+      document.getElementById('docCpcvSignal').textContent = document.getElementById('cpcvSignal').value || '___________________________';
+      document.getElementById('docDeedDays').textContent = document.getElementById('deedDaysLimit').value || '____';
+
+      // 7. Bank Financing clauses dynamic update
+      const hasFinancing = document.getElementById('hasFinancing').checked;
+      const clausula1 = document.getElementById('clausula1');
+      const clausula4 = document.getElementById('clausula4');
+
+      if (hasFinancing) {
+        clausula1.innerHTML = '<strong>1.ª</strong> Este cheque serve de pré-sinal do preço da compra do imóvel acima identificado, só sendo descontado após a assinatura do Contrato Promessa de Compra e Venda ou da escritura, caso não haja lugar a CPCV, e a sua entrega justifica-se pelo facto do comprador pretender recorrer a financiamento bancário para a aquisição, não tendo, nesta data, garantida a obtenção desse financiamento.';
+        clausula4.innerHTML = '<strong>4.ª</strong> Se a entidade Bancária, fizer empréstimo insuficiente para a efetivação desta compra ou o potencial Promitente Comprador não conseguir o financiamento, este cheque é devolvido e anulado este processo, salvo se as partes estiverem de acordo em prosseguir de igual modo com o processo de compra e venda.';
+        clausula4.style.display = 'block';
+      } else {
+        clausula1.innerHTML = '<strong>1.ª</strong> Este cheque serve de pré-sinal do preço da compra do imóvel acima identificado, só sendo descontado após a assinatura do Contrato Promessa de Compra e Venda ou da escritura, caso não haja lugar a CPCV, declarando o comprador que a aquisição é efetuada através de capitais próprios, sem recurso a crédito à habitação.';
+        clausula4.innerHTML = '<strong>4.ª</strong> As partes acordam expressamente que a transação não está dependente de financiamento bancário.';
+      }
+
+      // Footer City Date
+      const council = document.getElementById('propCouncil').value || 'Amares';
+      document.getElementById('docFooterCityDate').textContent = `${council}, ${resDate}`;
+    }
+
+    // Preencher com dados de exemplo realistas
+    function loadSampleData() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('reservationDate').value = today;
+      document.getElementById('cmiDate').value = today;
+
+      const cpcvDate = new Date();
+      cpcvDate.setDate(cpcvDate.getDate() + 30);
+      document.getElementById('cpcvDateLimit').value = cpcvDate.toISOString().split('T')[0];
+
+      document.getElementById('propFraction').value = 'B (1.º Andar Esquerdo)';
+      document.getElementById('propBuilding').value = 'Urbano n.º 1420';
+      document.getElementById('propAddress').value = 'Rua do Souto, n.º 24';
+      document.getElementById('propParish').value = 'Ferreiros';
+      document.getElementById('propCouncil').value = 'Amares';
+
+      document.getElementById('buyerNames').value = 'Manuel António Fernandes (NIF: 219876543) e Ana Sofia Ribeiro (NIF: 228765432)';
+      document.getElementById('sellerNames').value = 'Carlos Alberto Marques (NIF: 198765432) e Maria Clara Santos Marques';
+
+      document.getElementById('purchaseValueNum').value = 195000;
+      document.getElementById('purchaseValueText').value = '195.000,00 € (Cento e noventa e cinco mil euros)';
+      document.getElementById('reserveValueNum').value = 2500;
+      document.getElementById('reserveValueExtenso').value = '2.500,00€ (Dois mil e quinhentos euros)';
+      document.getElementById('paymentMethod').value = 'cheque';
+      document.getElementById('chequeNumber').value = 'CHQ-88392019';
+      document.getElementById('chequeBank').value = 'Millennium BCP';
+      document.getElementById('cpcvSignal').value = '19.500,00€ (Dezanove mil e quinhentos euros)';
+      document.getElementById('deedDaysLimit').value = 90;
+      document.getElementById('hasFinancing').checked = true;
+
+      togglePaymentInputs();
+      updateDocumentPreview();
+    }
+
+    // Limpar formulário para entrada do zero
+    function clearForm() {
+      document.getElementById('reservationForm').reset();
+      const img = document.getElementById('chequeImagePreview');
+      const placeholder = document.getElementById('chequePlaceholder');
+      img.src = '';
+      img.classList.add('hidden');
+      placeholder.classList.remove('hidden');
+      updateDocumentPreview();
+    }
+  </script>
+</body>
+</html>
